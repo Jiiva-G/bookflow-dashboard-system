@@ -115,7 +115,7 @@ const AdminBookings = () => {
       case 'confirmed':
         return 'success';
       case 'pending':
-        return 'warning';
+        return 'default';
       case 'cancelled':
         return 'destructive';
       default:

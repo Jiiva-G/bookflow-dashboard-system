@@ -21,10 +21,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MoreHorizontal, Search } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
+import UserEditDialog, { AdminUser } from '@/components/UserEditDialog';
 
 // Mock user data
-const users = [
+const initialUsers: AdminUser[] = [
   {
     id: '1',
     name: 'Admin User',
@@ -76,19 +78,57 @@ const users = [
 ];
 
 const AdminUsers = () => {
+  const [users, setUsers] = useState<AdminUser[]>(initialUsers);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   
   const filteredUsers = users.filter((user) =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleSaveUser = (updatedUser: AdminUser) => {
+    setUsers(prevUsers => {
+      const userIndex = prevUsers.findIndex(u => u.id === updatedUser.id);
+      if (userIndex >= 0) {
+        // Update existing user
+        const newUsers = [...prevUsers];
+        newUsers[userIndex] = updatedUser;
+        return newUsers;
+      } else {
+        // Add new user
+        return [...prevUsers, updatedUser];
+      }
+    });
+    
+    setSelectedUser(null);
+    toast("User updated", {
+      description: `${updatedUser.name}'s information has been updated`
+    });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+    toast("User deleted", {
+      description: "The user has been removed from the system",
+      variant: "destructive"
+    });
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <Button>Add User</Button>
+          <UserEditDialog 
+            onSave={handleSaveUser}
+            trigger={
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            }
+          />
         </div>
         
         <div className="relative w-full md:w-72">
@@ -149,9 +189,13 @@ const AdminUsers = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>View details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit user</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Delete user</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSelectedUser(user)}>
+                          Edit user
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive"
+                          onClick={() => handleDeleteUser(user.id)}>
+                          Delete user
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -160,6 +204,14 @@ const AdminUsers = () => {
             </TableBody>
           </Table>
         </div>
+        
+        {selectedUser && (
+          <UserEditDialog 
+            user={selectedUser} 
+            onSave={handleSaveUser}
+            trigger={<div className="hidden" />} 
+          />
+        )}
       </div>
     </DashboardLayout>
   );

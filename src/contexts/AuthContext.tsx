@@ -66,12 +66,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (user && password === 'password') { // Simple mock password check
         setUser(user);
         localStorage.setItem('currentUser', JSON.stringify(user));
-        toast.success(`Welcome back, ${user.name}!`);
+        toast(`Welcome back, ${user.name}!`, {
+          description: "You've successfully logged in."
+        });
       } else {
         throw new Error('Invalid credentials');
       }
     } catch (error) {
-      toast.error('Login failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast("Login failed", {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive"
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -104,9 +109,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Log in the new user
       setUser(newUser);
       localStorage.setItem('currentUser', JSON.stringify(newUser));
-      toast.success('Registration successful!');
+      toast("Registration successful!", {
+        description: "Your account has been created."
+      });
     } catch (error) {
-      toast.error('Registration failed: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      toast("Registration failed", {
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: "destructive"
+      });
       throw error;
     } finally {
       setIsLoading(false);
@@ -116,7 +126,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
-    toast.info('You have been logged out');
+    toast("Logged out", {
+      description: "You have been logged out successfully"
+    });
   };
 
   return (
